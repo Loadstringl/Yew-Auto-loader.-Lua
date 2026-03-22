@@ -1,96 +1,89 @@
--- [[ YEW AUTO PREMIUM - STABLE ENGLISH VERSION ]]
-
-local KEY_SECRET = "YEW-PRO-8829" -- Direct matching to avoid decoding errors
+-- [[ YEW AUTO PREMIUM - DUAL LOADER VERSION ]]
+local KEY_SECRET = "YEW-PRO-8829" 
+local ARGON_KEY = "ZKlFacQufYoGDofUOVKufFOLDtJwgCtW"
 local DISCORD_LINK = "https://discord.gg/kfeMqHhaR"
-local EXPIRE_STAMP = 1774227600 -- 1 Hour Limit
 
--- 1. Anti-Cheat Time Check
+-- [基础功能保持不变]
 local function GetTime()
     local s, r = pcall(function() return game:HttpGet("http://worldtimeapi.org/api/timezone/Etc/UTC") end)
     if s and r then return game:GetService("HttpService"):JSONDecode(r).unixtime end
     return os.time()
 end
 
--- 2. Forced Kick Function
-local function ForceKick(msg)
-    game.Players.LocalPlayer:Kick("\n[YEW AUTO AUTH]\n" .. msg .. "\nJoin Discord: " .. DISCORD_LINK)
-end
-
--- 3. Initial Security Checks
-if GetTime() > EXPIRE_STAMP then
-    ForceKick("Expired! This key was only for 1 hour.")
-    return
-end
-
--- 4. Mandatory Discord Join (First Run Only)
-if not isfile("yew_v2.txt") then
-    if setclipboard then setclipboard(DISCORD_LINK) end
-    writefile("yew_v2.txt", "verified")
-    ForceKick("First-time setup! Discord link copied.\nJoin Discord to get the Key, then come back.")
-    return
-end
-
--- 5. Create English Auth UI
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 280, 0, 190)
-Main.Position = UDim2.new(0.5, -140, 0.5, -95)
+Main.Size = UDim2.new(0, 300, 0, 220)
+Main.Position = UDim2.new(0.5, -150, 0.5, -110)
 Main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-Main.BorderSizePixel = 0
 Main.Active = true
 Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel", Main)
-Title.Text = "YEW AUTO - AUTHENTICATION"
+Title.Text = "YEW AUTO - SELECT SCRIPT"
 Title.Size = UDim2.new(1, 0, 0, 45)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.BackgroundTransparency = 1
 Title.Font = Enum.Font.GothamBold
 
+-- 验证输入框
 local Input = Instance.new("TextBox", Main)
-Input.PlaceholderText = "Enter Key Here..."
-Input.Position = UDim2.new(0.1, 0, 0.35, 0)
+Input.PlaceholderText = "Enter YEW Key..."
+Input.Position = UDim2.new(0.1, 0, 0.25, 0)
 Input.Size = UDim2.new(0.8, 0, 0, 35)
 Input.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 Input.TextColor3 = Color3.fromRGB(255, 255, 255)
 Input.Text = ""
 
-local Btn = Instance.new("TextButton", Main)
-Btn.Text = "VERIFY KEY"
-Btn.Position = UDim2.new(0.1, 0, 0.65, 0)
-Btn.Size = UDim2.new(0.8, 0, 0, 35)
-Btn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- 按钮1：加载 Wings
+local BtnWings = Instance.new("TextButton", Main)
+BtnWings.Text = "LOAD WINGS HUB"
+BtnWings.Position = UDim2.new(0.1, 0, 0.5, 0)
+BtnWings.Size = UDim2.new(0.8, 0, 0, 35)
+BtnWings.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+BtnWings.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnWings.Visible = false -- 验证前隐藏
 
--- 6. Verification & Load
-Btn.MouseButton1Click:Connect(function()
-    -- Clean the input (remove spaces/newlines)
-    local clean_input = Input.Text:gsub("%s+", "") 
-    
-    if clean_input == KEY_SECRET then
-        Btn.Text = "LOADING SCRIPT..."
-        Btn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
-        
-        -- Background time monitor
-        task.spawn(function()
-            while task.wait(30) do
-                if GetTime() > EXPIRE_STAMP then
-                    ForceKick("1-hour trial finished!")
-                    break
-                end
-            end
-        end)
-        
-        task.wait(1)
-        ScreenGui:Destroy()
-        
-        -- The Loader
-        loadstring(game:HttpGet("https://wings.ac/loader"))()
+-- 按钮2：加载 Argon
+local BtnArgon = Instance.new("TextButton", Main)
+BtnArgon.Text = "LOAD ARGON HUB"
+BtnArgon.Position = UDim2.new(0.1, 0, 0.75, 0)
+BtnArgon.Size = UDim2.new(0.8, 0, 0, 35)
+BtnArgon.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+BtnArgon.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnArgon.Visible = false -- 验证前隐藏
+
+-- 验证主按钮
+local VerifyBtn = Instance.new("TextButton", Main)
+VerifyBtn.Text = "VERIFY YEW KEY"
+VerifyBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+VerifyBtn.Size = UDim2.new(0.8, 0, 0, 45)
+VerifyBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- 逻辑处理
+VerifyBtn.MouseButton1Click:Connect(function()
+    if Input.Text:gsub("%s+", "") == KEY_SECRET then
+        VerifyBtn.Visible = false
+        Input.Visible = false
+        Title.Text = "CHOOSE YOUR SCRIPT"
+        BtnWings.Visible = true
+        BtnArgon.Visible = true
     else
-        Btn.Text = "WRONG KEY! CHECK DISCORD"
-        Btn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-        task.wait(1.5)
-        Btn.Text = "VERIFY KEY"
-        Btn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+        VerifyBtn.Text = "WRONG KEY!"
+        task.wait(1)
+        VerifyBtn.Text = "VERIFY YEW KEY"
     end
+end)
+
+BtnWings.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    loadstring(game:HttpGet("https://wings.ac/loader"))()
+end)
+
+BtnArgon.MouseButton1Click:Connect(function()
+    _G.Key = ARGON_KEY
+    _G.ArgonKey = ARGON_KEY
+    ScreenGui:Destroy()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/AgentX771/ArgonHubX/main/Loader.lua"))()
 end)
